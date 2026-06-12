@@ -8,7 +8,7 @@ conn = sql.connect(
 )
 
 cursor = conn.cursor()
-cursor.execute("SELECT * FROM samples.nyctaxi.trips LIMIT 5")
+cursor.execute("SHOW SCHEMAS IN system")
 rows = cursor.fetchall()
 for row in rows:
     print(row)
