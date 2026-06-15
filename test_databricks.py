@@ -8,10 +8,21 @@ conn = sql.connect(
 )
 
 cursor = conn.cursor()
-cursor.execute("SHOW SCHEMAS IN system")
+
+cursor.execute("""
+    SELECT
+        table_catalog,
+        table_schema,
+        table_name,
+        last_altered,
+        created
+    FROM samples.information_schema.tables
+    WHERE table_schema != 'information_schema'
+    ORDER BY last_altered DESC
+""")
 rows = cursor.fetchall()
 for row in rows:
     print(row)
-
 cursor.close()
+
 conn.close()
