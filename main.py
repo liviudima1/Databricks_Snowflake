@@ -2,41 +2,32 @@ import pandas as pd
 from extract_databricks import get_databricks_master
 from extract_snowflake import get_snowflake_master
 
-# --- Call both extractions ---
 print("Extracting from Databricks...")
 databricks_df = get_databricks_master()
 
 print("Extracting from Snowflake...")
 snowflake_df = get_snowflake_master()
 
-# --- Stack them into one unified inventory ---
 combined_df = pd.concat([databricks_df, snowflake_df], ignore_index=True)
 
-print("\n=== COMBINED INVENTORY (both platforms) ===")
 print("Databricks tables:", len(databricks_df))
 print("Snowflake tables:", len(snowflake_df))
 print("Combined total:", len(combined_df))
 
-# show the platform split
 print("\nBreakdown by platform:")
 print(combined_df["platform"].value_counts())
 
-# peek at a few rows from each platform
 print("\nSample rows:")
 print(combined_df[["table_name", "platform", "ever_accessed", "access_count"]].head(5))
 print("...")
 print(combined_df[["table_name", "platform", "ever_accessed", "access_count"]].tail(5))
 
-# --- Score the combined inventory ---
 import datetime
 
 now = pd.Timestamp.now(tz="UTC")
 
-# days since last altered (our staleness signal)
 combined_df["days_since_altered"] = (now - combined_df["last_altered"]).dt.days
 
-# simple MinimAIze-style score from the signals we have:
-#   staleness (older = higher) + never-accessed bonus
 def score_row(row):
     score = 0
     # staleness: up to 60 points, maxing out around 1 year idle
@@ -56,7 +47,6 @@ def categorize(s):
 
 combined_df["action"] = combined_df["minimaize_score"].apply(categorize)
 
-# show the top candidates across BOTH platforms
 ranked = combined_df.sort_values("minimaize_score", ascending=False)
 print("\n=== TOP MINIMIZE CANDIDATES (across both platforms) ===")
 print(ranked[["table_name", "platform", "days_since_altered",
