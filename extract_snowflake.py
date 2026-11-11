@@ -37,7 +37,6 @@ def get_snowflake_master():
     master_df["EVER_ACCESSED"] = master_df["LAST_ACCESSED"].notna()
     master_df["PLATFORM"] = "Snowflake"
 
-    # --- standardize column names to lowercase to MATCH Databricks ---
     master_df.columns = [c.lower() for c in master_df.columns]
 
     return master_df
